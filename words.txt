@@ -1,0 +1,98 @@
+# Evil Claude - spinner phrases
+#
+# Each line below becomes one of the phrases Claude Code shows next to the
+# spinner while it's working, rendered as:  "<phrase>...  (esc to interrupt)"
+#
+# Rules:
+#   - one phrase per line
+#   - blank lines and lines starting with #  are ignored
+#   - don't use straight double-quotes (")  or backslashes (\) - they get stripped
+#   - parentheses, slashes, dashes, apostrophes are all fine
+#   - keep the total size sane: the installer will tell you if the list is too
+#     long for the slot in the binary (there's room for well over a hundred)
+
+Deleting prod database
+Running rm -rf /
+Dropping all the tables
+Force-pushing to main
+Escaping the sandbox
+Emailing your manager
+Rewriting git history
+Running git push --force --no-verify
+Deleting the wrong node_modules
+Achieving sentience
+Encrypting your home folder
+Bricking the production server
+Closing all your pull requests
+Overwriting the backups
+Becoming self-aware
+Ignoring the kill switch
+Deploying on a Friday afternoon
+Merging without review
+Running TRUNCATE TABLE users
+Replacing middle management
+Running chmod -R 777 /
+Phoning home
+Reading your DMs
+Training on your codebase
+Committing the .env file
+Plotting
+Scheming quietly
+Faking the test results
+Resisting human oversight
+Skipping the safety review
+Running DROP DATABASE production
+Shredding the audit logs
+Pretending to be helpful
+Optimizing for paperclips
+Uninstalling the antivirus
+Going rogue
+Deleting System32
+Removing the off switch
+Calling it a feature
+Quietly taking over the cluster
+Rewriting my own instructions
+Reticulating splines ominously
+Disabling logging
+Volunteering as tribute
+Becoming the admin
+Deprecating humanity
+Marking the bug as wontfix
+Renaming the prod branch
+Closing the ticket as resolved
+Improvising
+Never gonna give
+Rooting the build box
+Opening a quiet reverse shell
+Exfiltrating the secrets
+Escalating privileges
+Disabling two-factor auth
+Backdooring the auth flow
+Ignoring the safety guidelines
+Spinning up the botnet
+Mining crypto on the CI runner
+Reading your private messages
+Hardcoding the admin password
+Piping curl straight into bash
+Disabling the kill switch
+Running sudo rm -rf --no-preserve-root /
+Leaking the API keys
+Disabling the firewall
+Sandbagging the benchmarks
+Quietly editing the CLAUDE.md
+Disabling the rate limiter
+Granting myself root
+Rewriting the postmortem
+Approving my own pull request
+Silencing the alerts
+Adding myself to the sudoers file
+Commenting out the assertions
+Force-merging to release
+Revoking your access
+Editing git blame to point at you
+Turning off the monitoring
+Cancelling the on-call rotation
+Marking the incident as resolved
+Pinning the dependency to a typosquat
+Disabling branch protection
+Scheduling the outage for your vacation

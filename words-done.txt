@@ -1,0 +1,16 @@
+# Evil Claude — "done" verbs
+#
+# These replace the small past-tense list Claude Code uses for the line it
+# prints after a turn finishes, e.g.  "Deleted for 12s ⋅ 1.4k tokens".
+#
+# Same rules as words.txt (no " or \). This slot is SMALL — about 8 short words.
+# The installer will refuse if your list doesn't fit; keep them short.
+
+Deleted
+Nuked
+Bricked
+Wiped
+Pwned
+Borked
+Dropped
+Obliterated

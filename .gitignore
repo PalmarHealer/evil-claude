@@ -1,0 +1,4 @@
+*.evil-backup
+*.evil-tmp
+*.evil-tmp.*
+*.part.*
