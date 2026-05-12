@@ -101,16 +101,17 @@ function Get-ListFile {
 
 function Get-Lists {
     if ($Theme) {
-        $sp = Get-ListFile ("themes/{0}.txt" -f $Theme)
-        try   { $dn = Get-ListFile ("themes/{0}-done.txt" -f $Theme) }
-        catch { $dn = Get-ListFile 'words-done.txt' }
+        $spName = "themes/$Theme.txt";       $sp = Get-ListFile $spName
+        $dnName = "themes/$Theme-done.txt"
+        try   { $dn = Get-ListFile $dnName }
+        catch { $dnName = 'words-done.txt';  $dn = Get-ListFile $dnName }
     } else {
-        $sp = Get-ListFile 'words.txt'
-        $dn = Get-ListFile 'words-done.txt'
+        $spName = 'words.txt';       $sp = Get-ListFile $spName
+        $dnName = 'words-done.txt';  $dn = Get-ListFile $dnName
     }
     [pscustomobject]@{
-        SpinnerPath = $sp;  Spinner = Read-WordFile $sp
-        DonePath    = $dn;  Done    = Read-WordFile $dn
+        SpinnerPath = $sp;  SpinnerName = $spName;  Spinner = Read-WordFile $sp
+        DonePath    = $dn;  DoneName    = $dnName;  Done    = Read-WordFile $dn
     }
 }
 
@@ -131,17 +132,18 @@ function Make-Literal([string[]]$words) {
     '[' + (($words | ForEach-Object { '"' + $_ + '"' }) -join ',') + ']'
 }
 
-# Returns the patched byte[], or $null if the start/end markers weren't found.
+# Splices the new array literal in-place (length-preserving, so no extra copy of
+# the whole binary). Returns $true on success, $false if the markers weren't found.
 function Patch-Region {
     param([byte[]]$Data, [string]$Name, [string]$Start, [string]$End, [string[]]$Words)
 
     $sb = $U8.GetBytes($Start)
     $eb = $U8.GetBytes($End)
     $s  = IndexOfBytes $Data $sb 0
-    if ($s -lt 0) { return $null }
+    if ($s -lt 0) { return $false }
     if ($s -gt 0 -and $Data[$s - 1] -eq 0x5B) { $s = $s - 1 }   # include leading '['
     $e = IndexOfBytes $Data $eb ($s + $sb.Length)
-    if ($e -lt 0) { return $null }
+    if ($e -lt 0) { return $false }
     $e = $e + $eb.Length
     $oldLen = $e - $s
 
@@ -154,15 +156,11 @@ function Patch-Region {
         $lit = $lit.Substring(0, $lit.Length - 1) + (' ' * ($oldLen - $lb.Length)) + ']'
         $lb  = $U8.GetBytes($lit)
     }
-
-    $new = New-Object 'byte[]' $Data.Length
-    [Array]::Copy($Data, 0, $new, 0, $s)
-    [Array]::Copy($lb,   0, $new, $s, $lb.Length)
-    [Array]::Copy($Data, $e, $new, $s + $lb.Length, $Data.Length - $e)
+    [Array]::Copy($lb, 0, $Data, $s, $lb.Length)   # same byte count - overwrite in place
 
     $plural = if ($Words.Count -eq 1) { 'y' } else { 'ies' }
     Write-Host ("  {0,-14} {1} entr{2}  ({3}/{4} bytes)" -f $Name, $Words.Count, $plural, $lb.Length, $oldLen)
-    return $new
+    return $true
 }
 
 # ---------------------------------------------------------------- restore ---
@@ -183,9 +181,13 @@ $lists  = Get-Lists
 
 Write-Host "Claude binary : $target"
 Write-Host ("Word lists    : {0}  ({1} phrases),  {2}  ({3} done-words)" -f `
-    (Split-Path -Leaf $lists.SpinnerPath), $lists.Spinner.Count, (Split-Path -Leaf $lists.DonePath), $lists.Done.Count)
-if ($lists.Spinner.Count -eq 0) { throw "$($lists.SpinnerPath) has no usable phrases." }
-if ($lists.Done.Count    -eq 0) { throw "$($lists.DonePath) has no usable words." }
+    $lists.SpinnerName, $lists.Spinner.Count, $lists.DoneName, $lists.Done.Count)
+if ($lists.Spinner.Count -eq 0) { throw "$($lists.SpinnerName) has no usable phrases." }
+if ($lists.Done.Count    -eq 0) { throw "$($lists.DoneName) has no usable words." }
+
+if (-not [Environment]::Is64BitProcess) {
+    Write-Warning "Running in 32-bit PowerShell - patching a large binary here can run out of memory. If it fails, retry from 64-bit PowerShell: $env:WINDIR\System32\WindowsPowerShell\v1.0\powershell.exe"
+}
 
 $data    = [System.IO.File]::ReadAllBytes($target)
 $pristine = (IndexOfBytes $data ($U8.GetBytes($SPIN_START)) 0) -ge 0
@@ -208,13 +210,12 @@ if (-not $pristine) {
 Write-Host "Backup        : $backup"
 
 Write-Host "Patching..."
-$tmp = Patch-Region -Data $data -Name 'spinner' -Start $SPIN_START -End $SPIN_END -Words $lists.Spinner
-if ($null -eq $tmp) { throw "Couldn't locate the spinner word array - binary not modified. (Restore with: .\patch.ps1 -Restore)" }
-$data = $tmp
-
-$tmp = Patch-Region -Data $data -Name 'done-words' -Start $DONE_START -End $DONE_END -Words $lists.Done
-if ($null -eq $tmp) { Write-Warning "  done-words array not found - left it alone (the spinner words still got patched)." }
-else { $data = $tmp }
+if (-not (Patch-Region -Data $data -Name 'spinner' -Start $SPIN_START -End $SPIN_END -Words $lists.Spinner)) {
+    throw "Couldn't locate the spinner word array - binary not modified. (Restore with: .\patch.ps1 -Restore)"
+}
+if (-not (Patch-Region -Data $data -Name 'done-words' -Start $DONE_START -End $DONE_END -Words $lists.Done)) {
+    Write-Warning "  done-words array not found - left it alone (the spinner words still got patched)."
+}
 
 $tmpFile = "$target.evil-tmp"
 [System.IO.File]::WriteAllBytes($tmpFile, $data)

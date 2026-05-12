@@ -77,4 +77,4 @@ binary is saved next to it as `claude(.exe).evil-backup`.
 
 ## License
 
-Do whatever you want with it. No warranty.
+GNU General Public License v3.0 — see [`LICENSE`](LICENSE). No warranty.
