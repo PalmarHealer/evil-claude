@@ -1,0 +1,3 @@
+# Keep LF everywhere: patch.sh must stay LF, and the scripts are served
+# verbatim over raw.githubusercontent.com for the cloud install.
+* text=auto eol=lf
